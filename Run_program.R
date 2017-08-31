@@ -1,7 +1,7 @@
-################################### Script for calculating predictability of extremes   #######################
-################################### Created by: Mingkai Jiang                           #######################
-################################### First created on: 2015-03-10                        #######################
-################################### Modified on: 2017-06-08                             #######################
+############################## Script for calculating drought index for the Hawkesbury region   ###############
+############################## Created by: Mingkai Jiang                                        ###############
+############################## First created on: 2017-09-01                                     ###############
+############################## Modified on: 2017-09-01                                          ###############
 ##############################################################################################################
 ##############################################################################################################
 ##############################################################################################################
@@ -13,11 +13,20 @@ rm(list=ls())
 source("R/prepare_R.R")
 
 ##############################################################################################################
-#### Compute indices
+DatFile <- "IDCJAC0009_067021_1800_Data.csv"
+
+##############################################################################################################
+#### Missing Check and Gap filling
+
+### Step 1: Check for missing data
+Missing_check(DatFile, sourceDir = "Data", destDir = "Analyses/Gap_Filled")
+
+##############################################################################################################
+#### Compute rainfall indices
 
 ### Step 1:
-### Compute coefficient of variation for all GHCN stations
-CoefVar(sourceDir = "data/ghcnd_gap_filled", destDir = "data/indices")
+### Compute coefficient of variation 
+CoefVar(sourceDir = "Data", destDir = "Analyses")
 
 ### Step 2: 
 ### Calculate seasonal 1D prcp and save into corresponding directory
