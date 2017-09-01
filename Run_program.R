@@ -25,29 +25,21 @@ Missing_check(DatFile, sourceDir = "Data", destDir = "Analyses/Gap_Filled")
 #### Compute rainfall indices
 
 ### Step 1:
-### Compute coefficient of variation 
-CoefVar(sourceDir = "Analyses/Gap_Filled", destDir = "Analyses/CoefVar")
+### Calculate threshold based dry index
+## number of days within a season when prcp < 5th & < 1st percentile
+ThrIndS(DatFile, sourceDir = "Analyses/Gap_Filled", destDir = "Analyses/ThrIndS")
 
-### Step 2: 
-### Calculate seasonal 1D prcp and save into corresponding directory
-RX1S(sourceDir = "data/ghcnd_gap_filled", destDir = "data/indices/rx1s")
+sourceDir = "Analyses/Gap_Filled"
+destDir = "Analyses/ThrIndS"
+Datfile <- DatFile
 
-### Step 3:
-##Calculate seasonal 5D prcp and save into corresponding directory
-RX5S(sourceDir = "data/ghcnd_gap_filled", destDir = "data/indices/rx5s")
+### Step 2:
+### Calculate consecutive dry days indices
+consecutive_day_indices(DatFile,
+                        sourceDir = "Analyses/Gap_Filled", destDir = "Analyses/Consecutive_Dry")
 
-### Step 4: 
-### Calculate threshold based indices, R10, R20, R95P, R99P,PRCPTOT at seasonal timestep
-ThrIndS(sourceDir = "data/ghcnd_gap_filled", destDir = "data/indices/ThrIndS")
-
-### Step 5:
-### Calculate prcp/# of wet days over each season and save into corresponding directory
-SDIIS(sourceDir = "data/ghcnd_gap_filled", destDir = "data/indices/SDIIS")
-
-### Step 6: 
-### Calculate consecutive days indices
-consecutive_day_indices(final_station_DF, 
-                        sourceDir = "data/ghcnd_gap_filled", destDir = "data/indices/CDS")
+##############################################################################################################
+#### Wavelet analyses
 
 ##############################################################################################################
 #### Calculate whole year range predictability

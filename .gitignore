@@ -40,3 +40,4 @@ vignettes/*.pdf
 # csv files
 /Analyses/*.csv
 /Analyses/Gap_Filled/*.csv
+/Analyses/ThrIndS/*.csv
