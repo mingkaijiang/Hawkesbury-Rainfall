@@ -29,14 +29,15 @@ Missing_check(DatFile, sourceDir = "Data", destDir = "Analyses/Gap_Filled")
 ## number of days within a season when prcp < 5th & < 1st percentile
 ThrIndS(DatFile, sourceDir = "Analyses/Gap_Filled", destDir = "Analyses/ThrIndS")
 
-sourceDir = "Analyses/Gap_Filled"
-destDir = "Analyses/ThrIndS"
-Datfile <- DatFile
-
 ### Step 2:
 ### Calculate consecutive dry days indices
 consecutive_day_indices(DatFile,
                         sourceDir = "Analyses/Gap_Filled", destDir = "Analyses/Consecutive_Dry")
+
+
+Datfile <- DatFile
+sourceDir = "Analyses/Gap_Filled"
+destDir = "Analyses/Consecutive_Dry"
 
 ##############################################################################################################
 #### Wavelet analyses

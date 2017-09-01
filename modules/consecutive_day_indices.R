@@ -1,164 +1,111 @@
 ##############################################################################################################
 ## Compute consecutive dry and wet days based on growing season information
-consecutive_day_indices<-function(sDF,
+consecutive_day_indices<-function(Datfile,
                                   sourceDir = DAILY.DATA.DIRECTORY, 
                                   destDir = DAILY.OUTPUT.DIRECTORY) {
-    ## This function calcualtes consecutive day and wet days indices for each GHCN station
-    ## based on pre-defined growing season information;
+    ## This function calcualtes consecutive day days indices 
+    ## based on seasonal information;
     ## Consecutive dry days: # consecutive no rain days / # days in a season
-    ## Consecutive wet days: # of consecutive precipitation days / # days in a season
-    ## season is defined as: before growing season, growing season and after growing season
     ## Southern Hemisphere year starts on 1/Jul
-    ## This function will return files with different naming criteria as the previous ones
-    ## because there are multiple weather stations for the same SCCS site, 
-    ## and one weather station could corresponds to multiple SCCS sites as well.
-    ## In addition, there are multiple crops for each SCCS site
-    ## So the final naming criteria follows: GHCN station ID _ SCCS ID _ Plant 1/2/3/4
     
     # prepare file list
     dir.create(destDir, showWarnings = FALSE)
 
-    # get sccs id information
-    sccs.id <- sDF$sccs_id
-    l <- length(sccs.id)
+    inName <- paste0(sourceDir, "/", Datfile)
+    outName <- paste0(destDir, "/", Datfile)
     
-    # update growing season plant sequence
-    for (i in 1:nrow(sDF)) {
+    # read in file and prepare the df
+    dd <- read.csv(inName)
+    colnames(dd)<-c("date","year","month","day","prcp")
+    dd$doy <- yday(dd$date)
+    
+    # check if the location is in southern hemisphere
+    if (s.date < e.date) {
+        # growing season starts before the ending date within a year
         
-        if (is.na(sDF[i,"plant3_start"])) {
-            sDF[i,"plant3_start"] <- sDF[i,"plant4_start"]
-            sDF[i,"plant3_end"] <- sDF[i,"plant4_end"]
+        # prepare output df
+        outDF <- data.frame(unique(dd$year), NA, NA, NA, 
+                            NA, NA, NA)
+        colnames(outDF) <- c("year", "dry_before", "dry_growing", "dry_after",
+                             "wet_before", "wet_growing", "wet_after")
+        
+        # growing period
+        g.period <- e.date - s.date + 1
+        b.period <- s.date - 0
+        a.period <- 366 - e.date + 1
+        
+        # count # days 
+        for (j in outDF$year) {
+            # extract the three periods
+            before_g <- subset(dd[dd$year == j,], doy < s.date)
+            during_g <- subset(dd[dd$year == j,], doy >= s.date & doy <= e.date)
+            after_g <- subset(dd[dd$year == j,],  doy > e.date)
             
-            sDF[i,"plant4_start"] <- NA
-            sDF[i,"plant4_end"] <- NA
+            # consecutive dry days in the three periods
+            dry_before <- rle(before_g$prcp)
+            dry_during <- rle(during_g$prcp)
+            dry_after <- rle(after_g$prcp)
+            
+            outDF[outDF$year == j, "dry_before"] <- max(dry_before$lengths[dry_before$values==0]) / b.period
+            outDF[outDF$year == j, "dry_growing"] <- max(dry_during$lengths[dry_during$values==0]) / g.period
+            outDF[outDF$year == j, "dry_after"] <- max(dry_after$lengths[dry_after$values==0]) / a.period
+            
+            # consecutive wet days in the three periods
+            wet_before <- rle(before_g$prcp)
+            wet_during <- rle(during_g$prcp)
+            wet_after <- rle(after_g$prcp)
+            
+            outDF[outDF$year == j, "wet_before"] <- max(wet_before$lengths[wet_before$values>0]) / b.period
+            outDF[outDF$year == j, "wet_growing"] <- max(wet_during$lengths[wet_during$values>0]) / g.period
+            outDF[outDF$year == j, "wet_after"] <- max(wet_after$lengths[wet_after$values>0]) / a.period
         }
+    } else {
+        # southern hemisphere, need to take one year out (1st year)
         
-        if (is.na(sDF[i,"plant2_start"])) {
-            sDF[i,"plant2_start"] <- sDF[i,"plant3_start"]
-            sDF[i,"plant2_end"] <- sDF[i,"plant3_end"]
-         
-            sDF[i,"plant3_start"] <- sDF[i,"plant4_start"]
-            sDF[i,"plant3_end"] <- sDF[i,"plant4_end"]   
-            
-            sDF[i,"plant4_start"] <- NA
-            sDF[i,"plant4_end"] <- NA
-        }
+        # prepare output df
+        outDF <- data.frame(unique(dd$year), NA, NA, NA, 
+                            NA, NA, NA)
+        colnames(outDF) <- c("year", "dry_before", "dry_growing", "dry_after",
+                             "wet_before", "wet_growing", "wet_after")
         
-        if (is.na(sDF[i,"plant1_start"])) {
-            sDF[i,"plant1_start"] <- sDF[i,"plant2_start"]
-            sDF[i,"plant1_end"] <- sDF[i,"plant2_end"]
+        outDF <- outDF[-1,]
+        
+        # growing period
+        g.period <- 366 - s.date + e.date
+        b.period <- s.date - 181 
+        a.period <- 181 - e.date
+        
+        # count # days 
+        for (j in outDF$year) {
+            # extract the three periods
+            before_g <- subset(dd[dd$year == (j - 1), ], doy < s.date & doy >= 181)
+            d1 <- subset(dd[dd$year == (j - 1), ], doy >= s.date)
+            d2 <- subset(dd[dd$year == j, ], doy <= e.date)
+            during_g <- rbind(d1, d2)
+            after_g <- subset(dd[dd$year == j,],  doy > e.date & doy < 181)
             
-            sDF[i,"plant2_start"] <- sDF[i,"plant3_start"]
-            sDF[i,"plant2_end"] <- sDF[i,"plant3_end"]
+            # consecutive dry days in the three periods
+            dry_before <- rle(before_g$prcp)
+            dry_during <- rle(during_g$prcp)
+            dry_after <- rle(after_g$prcp)
             
-            sDF[i,"plant3_start"] <- sDF[i,"plant4_start"]
-            sDF[i,"plant3_end"] <- sDF[i,"plant4_end"]   
+            outDF[outDF$year == j, "dry_before"] <- max(dry_before$lengths[dry_before$values==0]) / b.period
+            outDF[outDF$year == j, "dry_growing"] <- max(dry_during$lengths[dry_during$values==0]) / g.period
+            outDF[outDF$year == j, "dry_after"] <- max(dry_after$lengths[dry_after$values==0]) / a.period
             
-            sDF[i,"plant4_start"] <- NA
-            sDF[i,"plant4_end"] <- NA
+            # consecutive wet days in the three periods
+            wet_before <- rle(before_g$prcp)
+            wet_during <- rle(during_g$prcp)
+            wet_after <- rle(after_g$prcp)
+            
+            outDF[outDF$year == j, "wet_before"] <- max(wet_before$lengths[wet_before$values>0]) / b.period
+            outDF[outDF$year == j, "wet_growing"] <- max(wet_during$lengths[wet_during$values>0]) / g.period
+            outDF[outDF$year == j, "wet_after"] <- max(wet_after$lengths[wet_after$values>0]) / a.period
         }
     }
     
-    for (i in sccs.id) {
-        print(paste0("within i loop ", i))
-        # check if there is growing season information
-        if (is.na(sDF[sDF$sccs_id == i, "plant1_start"])) {
-            print(paste0("No growing season information for sccs id ", i))
-        } else if (is.na(sDF[sDF$sccs_id == i, "plant2_start"])) {
-            print(paste0("One growing season for sccs id", i))
-            # extract plant start and end doy information
-            s.doy <- sDF[sDF$sccs_id == i, "plant1_start"]
-            e.doy <- sDF[sDF$sccs_id == i, "plant1_end"]
-            
-            # ghcn station list
-            ghcn.list <- c(sDF[sDF$sccs_id == i, "ghcn1"], sDF[sDF$sccs_id == i, "ghcn2"],
-                           sDF[sDF$sccs_id == i, "ghcn3"], sDF[sDF$sccs_id == i, "ghcn4"],
-                           sDF[sDF$sccs_id == i, "ghcn5"], sDF[sDF$sccs_id == i, "ghcn6"],
-                           sDF[sDF$sccs_id == i, "ghcn7"], sDF[sDF$sccs_id == i, "ghcn8"],
-                           sDF[sDF$sccs_id == i, "ghcn9"])
-            ghcn.list <- ghcn.list[!is.na(ghcn.list)]
-            ghcn.l <- length(ghcn.list)
-            
-            # compute consecutive days indices
-            ifelse(ghcn.l == 0, print(paste0("No GHCN station for SCCS ", i)), 
-                   compute_consecutive_indices_1(s.doy, e.doy, ghcn.list, i, sourceDir, destDir))
-            
-        } else if (is.na(sDF[sDF$sccs_id == i, "plant3_start"])) {
-            print(paste0("Two growing seasons for sccs id", i))
-            
-            # extract plant start and end doy information
-            s1.doy <- sDF[sDF$sccs_id == i, "plant1_start"]
-            e1.doy <- sDF[sDF$sccs_id == i, "plant1_end"]
-            s2.doy <- sDF[sDF$sccs_id == i, "plant2_start"]
-            e2.doy <- sDF[sDF$sccs_id == i, "plant2_end"]
-            
-            # ghcn station list
-            ghcn.list <- c(sDF[sDF$sccs_id == i, "ghcn1"], sDF[sDF$sccs_id == i, "ghcn2"],
-                           sDF[sDF$sccs_id == i, "ghcn3"], sDF[sDF$sccs_id == i, "ghcn4"],
-                           sDF[sDF$sccs_id == i, "ghcn5"], sDF[sDF$sccs_id == i, "ghcn6"],
-                           sDF[sDF$sccs_id == i, "ghcn7"], sDF[sDF$sccs_id == i, "ghcn8"],
-                           sDF[sDF$sccs_id == i, "ghcn9"])
-            ghcn.list <- ghcn.list[!is.na(ghcn.list)]
-            ghcn.l <- length(ghcn.list)
-            
-            # compute consecutive days indices
-            ifelse(ghcn.l == 0, print(paste0("No GHCN station for SCCS ", i)), 
-                   compute_consecutive_indices_2(s1.doy, e1.doy, s2.doy, e2.doy,
-                                                 ghcn.list, i, sourceDir, destDir))
-            
-        } else if (is.na(sDF[sDF$sccs_id == i, "plant4_start"])) {
-            print(paste0("Three growing seasons for sccs id", i))
-            
-            # extract plant start and end doy information
-            s1.doy <- sDF[sDF$sccs_id == i, "plant1_start"]
-            e1.doy <- sDF[sDF$sccs_id == i, "plant1_end"]
-            s2.doy <- sDF[sDF$sccs_id == i, "plant2_start"]
-            e2.doy <- sDF[sDF$sccs_id == i, "plant2_end"]
-            s3.doy <- sDF[sDF$sccs_id == i, "plant3_start"]
-            e3.doy <- sDF[sDF$sccs_id == i, "plant3_end"]
-            
-            # ghcn station list
-            ghcn.list <- c(sDF[sDF$sccs_id == i, "ghcn1"], sDF[sDF$sccs_id == i, "ghcn2"],
-                           sDF[sDF$sccs_id == i, "ghcn3"], sDF[sDF$sccs_id == i, "ghcn4"],
-                           sDF[sDF$sccs_id == i, "ghcn5"], sDF[sDF$sccs_id == i, "ghcn6"],
-                           sDF[sDF$sccs_id == i, "ghcn7"], sDF[sDF$sccs_id == i, "ghcn8"],
-                           sDF[sDF$sccs_id == i, "ghcn9"])
-            ghcn.list <- ghcn.list[!is.na(ghcn.list)]
-            ghcn.l <- length(ghcn.list)
-            
-
-            # compute consecutive days indices
-            ifelse(ghcn.l == 0, print(paste0("No GHCN station for SCCS ", i)), 
-                   compute_consecutive_indices_3(s1.doy, e1.doy, s2.doy, e2.doy, s3.doy, e3.doy,
-                                                 ghcn.list, i, sourceDir, destDir))
-        } else {
-            print(paste0("Four growing seasons for sccs id", i))
-            
-            # extract plant start and end doy information
-            s1.doy <- sDF[sDF$sccs_id == i, "plant1_start"]
-            e1.doy <- sDF[sDF$sccs_id == i, "plant1_end"]
-            s2.doy <- sDF[sDF$sccs_id == i, "plant2_start"]
-            e2.doy <- sDF[sDF$sccs_id == i, "plant2_end"]
-            s3.doy <- sDF[sDF$sccs_id == i, "plant3_start"]
-            e3.doy <- sDF[sDF$sccs_id == i, "plant3_end"]
-            s4.doy <- sDF[sDF$sccs_id == i, "plant4_start"]
-            e4.doy <- sDF[sDF$sccs_id == i, "plant4_end"]
-            
-            # ghcn station list
-            ghcn.list <- c(sDF[sDF$sccs_id == i, "ghcn1"], sDF[sDF$sccs_id == i, "ghcn2"],
-                           sDF[sDF$sccs_id == i, "ghcn3"], sDF[sDF$sccs_id == i, "ghcn4"],
-                           sDF[sDF$sccs_id == i, "ghcn5"], sDF[sDF$sccs_id == i, "ghcn6"],
-                           sDF[sDF$sccs_id == i, "ghcn7"], sDF[sDF$sccs_id == i, "ghcn8"],
-                           sDF[sDF$sccs_id == i, "ghcn9"])
-            ghcn.list <- ghcn.list[!is.na(ghcn.list)]
-            ghcn.l <- length(ghcn.list)
-            
-            # compute consecutive days indices
-            ifelse(ghcn.l == 0, print(paste0("No GHCN station for SCCS ", i)), 
-                   compute_consecutive_indices_4(s1.doy, e1.doy, s2.doy, e2.doy, 
-                                                 s3.doy, e3.doy, s4.doy, e4.doy,
-                                                 ghcn.list, i, sourceDir, destDir))
-        }
-    }
+    # write output
+    write.csv(outDF, outName)
     
+    print(paste0("finish k loop ", k))
 }
