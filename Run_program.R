@@ -26,7 +26,7 @@ Missing_check(DatFile, sourceDir = "Data", destDir = "Analyses/Gap_Filled")
 
 ### Step 1:
 ### Compute coefficient of variation 
-CoefVar(sourceDir = "Data", destDir = "Analyses")
+CoefVar(sourceDir = "Analyses/Gap_Filled", destDir = "Analyses/CoefVar")
 
 ### Step 2: 
 ### Calculate seasonal 1D prcp and save into corresponding directory
