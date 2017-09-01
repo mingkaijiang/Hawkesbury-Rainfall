@@ -36,3 +36,7 @@ vignettes/*.pdf
 
 # DS files
 *.DS_Store
+
+# csv files
+/Analyses/*.csv
+/Analyses/Gap_Filled/*.csv

@@ -1,9 +1,8 @@
 ##############################################################################################################
 ##Plot annual trend of coefficient of variation and the associated focal year onto the same graph
-CoefPlot<-function(Datfile, sourceDir = DAILY.DATA.DIRECTORY, destDir = DAILY.OUTPUT.DIRECTORY)
+Coef_of_Variation<-function(Datfile, sourceDir = DAILY.DATA.DIRECTORY, destDir = DAILY.OUTPUT.DIRECTORY)
 {
 
-    Datfile <- "IDCJAC0009_067021_1800_Data.csv"
     dir.create(destDir, showWarnings = FALSE)
     inName <- paste0(sourceDir, "/", Datfile)
     outName <- paste0(destDir, "/", Datfile)
