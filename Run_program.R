@@ -35,7 +35,14 @@ consecutive_day_annual(DatFile,
                         sourceDir = "Analyses/Gap_Filled", destDir = "Analyses/Consecutive_Dry_Annual")
 
 consecutive_day_decadal(DatFile,
-                       sourceDir = "Analyses/Gap_Filled", destDir = "Analyses/Consecutive_Dry_Decadal")
+                        sourceDir = "Analyses/Gap_Filled", destDir = "Analyses/Consecutive_Dry_Decadal")
+
+consecutive_day_whole(DatFile,
+                        sourceDir = "Analyses/Gap_Filled", destDir = "Analyses/Consecutive_Dry_Whole")
+
+Datfile <- DatFile
+sourceDir = "Analyses/Gap_Filled"
+destDir = "Analyses/Consecutive_Dry_Whole"
 
 
 ##############################################################################################################
