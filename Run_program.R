@@ -31,13 +31,12 @@ ThrIndS(DatFile, sourceDir = "Analyses/Gap_Filled", destDir = "Analyses/ThrIndS"
 
 ### Step 2:
 ### Calculate consecutive dry days indices
-consecutive_day_indices(DatFile,
-                        sourceDir = "Analyses/Gap_Filled", destDir = "Analyses/Consecutive_Dry")
+consecutive_day_annual(DatFile,
+                        sourceDir = "Analyses/Gap_Filled", destDir = "Analyses/Consecutive_Dry_Annual")
 
+consecutive_day_decadal(DatFile,
+                       sourceDir = "Analyses/Gap_Filled", destDir = "Analyses/Consecutive_Dry_Decadal")
 
-Datfile <- DatFile
-sourceDir = "Analyses/Gap_Filled"
-destDir = "Analyses/Consecutive_Dry"
 
 ##############################################################################################################
 #### Wavelet analyses

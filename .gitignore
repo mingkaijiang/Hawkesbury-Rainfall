@@ -41,3 +41,5 @@ vignettes/*.pdf
 /Analyses/*.csv
 /Analyses/Gap_Filled/*.csv
 /Analyses/ThrIndS/*.csv
+/Analyses/Consecutive_Dry_Annual/*.csv
+/Analyses/Consecutive_Dry_Dacadal/*.csv
