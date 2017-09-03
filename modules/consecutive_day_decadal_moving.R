@@ -1,6 +1,6 @@
 ##############################################################################################################
-## Compute consecutive dry days based on decadal information 
-consecutive_day_decadal<-function(Datfile,
+## Compute consecutive dry days based on decadal information - moving time series
+consecutive_day_decadal_moving<-function(Datfile,
                                   sourceDir = DAILY.DATA.DIRECTORY, 
                                   destDir = DAILY.OUTPUT.DIRECTORY) {
     ## This function calcualtes consecutive day days indices 
@@ -19,7 +19,9 @@ consecutive_day_decadal<-function(Datfile,
     colnames(dd)<-c("date","year","month","day","prcp")
     dd$doy <- yday(dd$date)
     
-    year.list <- round(unique(dd$year), 10)
+    year.list <- unique(dd$year)
+    e.year <- length(year.list)
+    year.list <- year.list[10:e.year]
     
     # prepare output df
     outDF <- data.frame(year.list, NA, NA, NA, 

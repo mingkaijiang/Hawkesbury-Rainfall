@@ -34,19 +34,30 @@ ThrIndS(DatFile, sourceDir = "Analyses/Gap_Filled", destDir = "Analyses/ThrIndS"
 consecutive_day_annual(DatFile,
                         sourceDir = "Analyses/Gap_Filled", destDir = "Analyses/Consecutive_Dry_Annual")
 
+consecutive_day_decadal_moving(DatFile,
+                               sourceDir = "Analyses/Gap_Filled", destDir = "Analyses/Consecutive_Dry_Decadal_Moving")
+
 consecutive_day_decadal(DatFile,
                         sourceDir = "Analyses/Gap_Filled", destDir = "Analyses/Consecutive_Dry_Decadal")
 
 consecutive_day_whole(DatFile,
-                        sourceDir = "Analyses/Gap_Filled", destDir = "Analyses/Consecutive_Dry_Whole")
-
-Datfile <- DatFile
-sourceDir = "Analyses/Gap_Filled"
-destDir = "Analyses/Consecutive_Dry_Whole"
+                      sourceDir = "Analyses/Gap_Filled", destDir = "Analyses/Consecutive_Dry_Whole")
 
 
 ##############################################################################################################
 #### Wavelet analyses
+
+wavelet_analysis(DatFile,
+                 sourceDir = "Analyses/Consecutive_Dry_Annual", destDir = "Analyses/Wavelet_Analysis")
+
+
+### wavelet analyses may not be ideal for inferring consecutive dry days,
+### because wavelet analyses produces a frequency correlation plot.
+### The y-axis is period - the recurrence periodicity of the x-axis.
+### But the x-axis does not have a value attached to it - what we calculated was
+### number of consecutive dry days within each year or
+### max number of consecutive dry days within each year/decade. 
+
 
 ##############################################################################################################
 #### Calculate whole year range predictability
