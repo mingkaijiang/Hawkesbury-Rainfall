@@ -43,4 +43,8 @@ vignettes/*.pdf
 /Analyses/ThrIndS/*.csv
 /Analyses/Consecutive_Dry_Annual/*.csv
 /Analyses/Consecutive_Dry_Decadal/*.csv
+/Analyses/Consecutive_Dry_Decadal_Moving/*.csv
 /Analyses/Consecutive_Dry_Whole/*.csv
+/Analyses/CDP/*.csv
+/Analyses/R01PS/*.csv
+/Analyses/R05PS/*.csv

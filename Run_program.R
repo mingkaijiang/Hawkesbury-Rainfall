@@ -60,12 +60,15 @@ wavelet_analysis(DatFile,
 
 
 ##############################################################################################################
-#### Calculate whole year range predictability
-R05PS_pred(sourceDir = "data/indices/ThrIndS", destDir = "data/predictability")
+#### Calculate predictability for all drought indices
+R05PS_pred(DatFile, sourceDir = "Analyses/ThrIndS", destDir = "Analyses/R05PS")
 
-
-R01PS_pred(sourceDir = "data/indices/ThrIndS", destDir = "data/predictability")
+R01PS_pred(DatFile, sourceDir = "Analyses/ThrIndS", destDir = "Analyses/R01PS")
 
 ## Calculate dry consecutive predictability
-consec_dry_pred(sourceDir = "data/indices/CDS", destDir = "data/predictability")
+consec_dry_pred_annual(DatFile, sourceDir = "Analyses/Consecutive_Dry_Annual", destDir = "Analyses/CDP")
+
+Datfile <- DatFile
+sourceDir = "Analyses/Consecutive_Dry_Annual"
+destDir = "Analyses/CDP"
 
