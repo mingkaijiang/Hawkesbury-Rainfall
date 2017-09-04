@@ -68,7 +68,6 @@ R01PS_pred(DatFile, sourceDir = "Analyses/ThrIndS", destDir = "Analyses/R01PS")
 ## Calculate dry consecutive predictability
 consec_dry_pred_annual(DatFile, sourceDir = "Analyses/Consecutive_Dry_Annual", destDir = "Analyses/CDP")
 
-Datfile <- DatFile
-sourceDir = "Analyses/Consecutive_Dry_Annual"
-destDir = "Analyses/CDP"
 
+##############################################################################################################
+#### Making plots
