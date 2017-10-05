@@ -48,3 +48,4 @@ vignettes/*.pdf
 /Analyses/CDP/*.csv
 /Analyses/R01PS/*.csv
 /Analyses/R05PS/*.csv
+/Analyses/Wavelet_Analysis/*.pdf

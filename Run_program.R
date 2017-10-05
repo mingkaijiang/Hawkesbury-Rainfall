@@ -69,5 +69,18 @@ R01PS_pred(DatFile, sourceDir = "Analyses/ThrIndS", destDir = "Analyses/R01PS")
 consec_dry_pred_annual(DatFile, sourceDir = "Analyses/Consecutive_Dry_Annual", destDir = "Analyses/CDP")
 
 
+
+#### Notes:
+### predictability is not straightforward for making inference of the recurrence interval of droughts
+### it might make sense just to calculate the likelihood of occurrence of consecutive dry days > 20 days/season etc.
+
 ##############################################################################################################
 #### Making plots
+
+
+
+
+
+##############################################################################################################
+#### End
+
