@@ -154,9 +154,43 @@ year_2018_rainfall_generation <- function(DatFile,
     wet_pred$pred_down <- round(wet_pred$pred * down_ratio,0)
     dry_pred$pred_down <- round(dry_pred$pred * down_ratio,0)
     
+    # total number of predicted wet days
+    tot_wet <- sum(wet_pred$cons_days * wet_pred$pred_down)
+    
+    # generate random precipitation events
+    # according to 3:2:1 ratio of small, medium, and large precipitation categories
+    # i.e. assign 20 days with small prec
+    #             12 days with medium prec
+    #             6 days with large prec
+    # total must equal 300 mm
+    sm.value <- seq(1,5, 0.1)
+    md.value <- c(6:30)
+    lg.value <- c(31:40)
+    
+    rain.events <- random.sample(sm.value, md.value, lg.value)
+    
+    # mix and match
+    rain.days <- sample(rain.events)
+    
+    # now create time series prec and no prec days
     
     
-    sum(wet_pred$cons_days * wet_pred$pred_down) + sum(dry_pred$cons_days * dry_pred$pred_down)
-        
 }
 
+
+# sample randomly from prec events and checking conditions
+random.sample <- function(sm.value, md.value, lg.value) {
+    repeat {
+        sm.series <- sample(sm.value, 20)
+        md.series <- sample(md.value, 12)
+        lg.series <- sample(lg.value, 6)
+        out <- c(sm.series, md.series, lg.series)
+        tot_rain <- sum(out)
+        
+        
+        # exit if the condition is met
+        # 20% variation
+        if (tot_rain >= 230 & tot_rain <= 360) break
+    }
+    return(out)
+}
