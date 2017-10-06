@@ -108,59 +108,55 @@ year_2018_rainfall_generation <- function(DatFile,
     wetDF[is.na(wetDF)] <- 0
     dryDF[is.na(dryDF)] <- 0
     
+    # prepare output df that stores predicted wet and dry days
+    wet_pred <- data.frame(wetDF$cons_days, NA)
+    colnames(wet_pred) <- c("cons_days", "pred")
+    
+    dry_pred <- data.frame(dryDF$cons_days, NA)
+    colnames(dry_pred) <- c("cons_days", "pred")
 
+   for (m in 1:12) {
+       # number of days that have m consecutive days
+       num_cons <- as.vector(as.matrix(wetDF[wetDF$cons_days == m, 2:16]))
+       myfreq <- as.data.frame(table(num_cons))
+       myprob <- data.frame(myfreq, NA)
+       colnames(myprob) <- c("num_cons", "freq", "prob")
+       csum <- sum(myprob$freq)
+       myprob$prob <- myprob$freq/csum
+
+       d <- sample(myprob$num_cons,size = 1, prob = myprob$prob)
+       
+       wet_pred[wet_pred$cons_days == m, "pred"] <- as.character(d)
+    }
     
-    # bootstrapping for each dataframe and each consecutive days
-    rsq <- function(formula, data) {
-        d <- data[cons_days_1,] # allows boot to select sample 
-        fit <- lm(formula, data=d)
-        return(summary(fit)$r.square)
-    } 
+    for (m in 1:17) {
+        # number of days that have m consecutive days
+        num_cons <- as.vector(as.matrix(dryDF[dryDF$cons_days == m, 2:16]))
+        myfreq <- as.data.frame(table(num_cons))
+        myprob <- data.frame(myfreq, NA)
+        colnames(myprob) <- c("num_cons", "freq", "prob")
+        csum <- sum(myprob$freq)
+        myprob$prob <- myprob$freq/csum
+        
+        d <- sample(myprob$num_cons, size = 1, prob = myprob$prob)
+        
+        dry_pred[dry_pred$cons_days == m, "pred"] <- as.character(d)
+    }
     
-    # bootstrapping with 1000 replications 
-    results <- boot(data=wetDF$cons_days_1, R=1000)
+    wet_pred$pred <- as.numeric(wet_pred$pred)
+    dry_pred$pred <- as.numeric(dry_pred$pred)
     
-    , statistic=rsq, 
-                    R=1000, formula=mpg~wt+disp)
+    # down sizing the prediction number of days
+    tot_estimate <- sum(wet_pred$cons_days * wet_pred$pred) + sum(dry_pred$cons_days * dry_pred$pred)
+
+    down_ratio <- 90.0/tot_estimate
     
-    # view results
-    results 
-    plot(results)
-    
-    # get 95% confidence interval 
-    boot.ci(results, type="bca")
+    wet_pred$pred_down <- round(wet_pred$pred * down_ratio,0)
+    dry_pred$pred_down <- round(dry_pred$pred * down_ratio,0)
     
     
     
-    
-    
-    
+    sum(wet_pred$cons_days * wet_pred$pred_down) + sum(dry_pred$cons_days * dry_pred$pred_down)
+        
 }
 
-# computing probability
-myprob <- data.frame(precip.freq, NA)
-colnames(myprob) <- c("range", "freq", "prob")
-csum <- sum(myprob$freq)
-myprob$prob <- myprob$freq/csum
-
-# computing selection number list
-mynumbers <- fill.list[1:length(fill.list)-1]
-
-# sampling from the number list following distribution probability
-d <- sample(mynumbers, size=length(t), replace=T, prob=myprob$prob)
-
-
-
-
-
-# transpose
-wetDF <- t(wetDF)
-dryDF <- t(dryDF)
-
-# colnames
-colnames(wetDF) <- c(paste0("cons_days_", c(1:12)))
-colnames(dryDF) <- c(paste0("cons_days_", c(1:17)))
-wetDF <- wetDF[-1,]
-dryDF <- dryDF[-1,]
-wetDF <- as.data.frame(wetDF)
-dryDF <- as.data.frame(dryDF)
