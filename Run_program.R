@@ -75,9 +75,22 @@ consec_dry_pred_annual(DatFile, sourceDir = "Analyses/Consecutive_Dry_Annual", d
 ### it might make sense just to calculate the likelihood of occurrence of consecutive dry days > 20 days/season etc.
 
 ##############################################################################################################
-#### Making plots
+#### Generate future summer precipitation based on previous statistics
+#### Criteria:
+#### 1. Pick years when annual prec is 650 - 750 mm/yr
+#### 2. Calculate the consecutive dry and wet day indices for summer only, for those years
+#### 3. Get an all-time averages for one consecutive dry and wet day estimates for summer
+#### 4. Summer is defined as Dec, Jan and Feb
+#### 5. Create randomly a total of 60 rainfall days in summer (out of 90 days)
+#### 6. The total amount of rainfall = 300 mm
+#### 7. Out of the 60 rainfall events, 30 are small (1 - 5 mm)
+####                                   20 are medium (5 - 30 mm)
+####                                   10 are large (30 - 80 mm)
+#### 8. Let the consecutive dry and wet days in this new dataset following the distribution of historic records
 
-
+year_2018_rainfall_generation(DatFile, 
+                              sourceDir = "Analyses/Gap_Filled", 
+                              destDir = "Analyses/Year_2018_rainfall")
 
 
 

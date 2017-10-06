@@ -8,7 +8,7 @@ if(!require(scales))install.packages("scales")
 #### all functions
 if(!require(pacman))install.packages("pacman")
 pacman::p_load(reshape, reshape2, lubridate, eeptools, hyfo,
-               dplyr, dplR) # add other packages needed to this list
+               dplyr, dplR, boot) # add other packages needed to this list
 
 
 # Sourcing all R files in the modules subdirectory
