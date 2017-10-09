@@ -43,17 +43,18 @@ year_2018_rainfall_generation <- function(DatFile,
     # i.e. ann tot <= 750 and >= 650 mm
     for (i in yr.list) {
         # extract annual df
-        jannov <- subset(dd[dd$year == i,], month >= 1 & month <= 11)
-        annDF <- rbind(dec, jannov)
+        jul_to_dec <- subset(dd[dd$year == i-1,], month >= 7 & month <= 12)
+        jan_to_jun <- subset(dd[dd$year == i,], month >= 1 & month <= 6)
+        annDF <- rbind(jul_to_dec, jan_to_jun)
         
-        # calculate summer and annual total rainfall
+        # calculate annual total rainfall
         ann_tot_DF[ann_tot_DF$year == i, "ann_tot"] <- sum(annDF$prcp)
     }
     
     ann_tot_DF_upd <- subset(ann_tot_DF, ann_tot >= 650 & ann_tot <= 750)
     yr.list.upd <- unique(ann_tot_DF_upd$year)
     
-    # create output DF
+    # create dry wet DF
     dryDF <- matrix(ncol = length(yr.list.upd)+1, nrow = 90)
     colnames(dryDF) <- c("cons_days", paste0("yr_", yr.list.upd))
     dryDF <- as.data.frame(dryDF)
@@ -96,12 +97,12 @@ year_2018_rainfall_generation <- function(DatFile,
     dry_na_row <- apply(dryDF, 1, function(x) sum(is.na(x)))
     
     # write output
-    write.csv(dryDF[1:17,], outName1, row.names=F)
-    write.csv(wetDF[1:12,], outName2, row.names=F)
+    write.csv(dryDF, outName1, row.names=F)
+    write.csv(wetDF, outName2, row.names=F)
     
     # prepare dataframe 
-    wetDF <- wetDF[1:12,]
-    dryDF <- dryDF[1:17,]
+    wetDF <- wetDF
+    dryDF <- dryDF
     
     ## to randomly sample from these data frame to generate one wet and dry time series
     # NA to 0
@@ -114,10 +115,14 @@ year_2018_rainfall_generation <- function(DatFile,
     
     dry_pred <- data.frame(dryDF$cons_days, NA)
     colnames(dry_pred) <- c("cons_days", "pred")
+    
+    l <- dim(wetDF)[2]
 
-   for (m in 1:12) {
+    set.seed(11)
+    
+   for (m in 1:90) {
        # number of days that have m consecutive days
-       num_cons <- as.vector(as.matrix(wetDF[wetDF$cons_days == m, 2:16]))
+       num_cons <- as.vector(as.matrix(wetDF[wetDF$cons_days == m, 2:l]))
        myfreq <- as.data.frame(table(num_cons))
        myprob <- data.frame(myfreq, NA)
        colnames(myprob) <- c("num_cons", "freq", "prob")
@@ -129,9 +134,9 @@ year_2018_rainfall_generation <- function(DatFile,
        wet_pred[wet_pred$cons_days == m, "pred"] <- as.character(d)
     }
     
-    for (m in 1:17) {
+    for (m in 1:90) {
         # number of days that have m consecutive days
-        num_cons <- as.vector(as.matrix(dryDF[dryDF$cons_days == m, 2:16]))
+        num_cons <- as.vector(as.matrix(dryDF[dryDF$cons_days == m, 2:l]))
         myfreq <- as.data.frame(table(num_cons))
         myprob <- data.frame(myfreq, NA)
         colnames(myprob) <- c("num_cons", "freq", "prob")
@@ -156,6 +161,9 @@ year_2018_rainfall_generation <- function(DatFile,
     
     # total number of predicted wet days
     tot_wet <- sum(wet_pred$cons_days * wet_pred$pred_down)
+    tot_days <- sum(wet_pred$cons_days * wet_pred$pred_down) + sum(dry_pred$cons_days * dry_pred$pred_down)
+    
+    tot_wet
     
     # generate random precipitation events
     # according to 3:2:1 ratio of small, medium, and large precipitation categories
@@ -167,30 +175,88 @@ year_2018_rainfall_generation <- function(DatFile,
     md.value <- c(6:30)
     lg.value <- c(31:40)
     
-    rain.events <- random.sample(sm.value, md.value, lg.value)
+    rain.events <- random.sample(sm.value, md.value, lg.value, tot_wet)
     
     # mix and match
     rain.days <- sample(rain.events)
     
-    # now create time series prec and no prec days
+    # create dry and wet days by getting the occurrence frequency information
+    dry_pred[dry_pred == 0] <- NA
+    wet_pred[wet_pred == 0] <- NA
+    dry_pred_complete <- dry_pred[complete.cases(dry_pred),]
+    wet_pred_complete <- wet_pred[complete.cases(wet_pred),]
     
+    dry_days <- c(rep(dry_pred_complete[dry_pred_complete$cons_days == 1, "cons_days"], dry_pred_complete[dry_pred_complete$cons_days == 1, "pred_down"]))
+    wet_days <- c(rep(wet_pred_complete[wet_pred_complete$cons_days == 1, "cons_days"], wet_pred_complete[wet_pred_complete$cons_days == 1, "pred_down"]))
     
+    for (i in dry_pred_complete$cons_days[-1]) {
+        extra.row <- rep(dry_pred_complete[dry_pred_complete$cons_days == i, "cons_days"], dry_pred_complete[dry_pred_complete$cons_days == i, "pred_down"])
+        
+        dry_days <- append(dry_days, extra.row)
+    }
+    
+    for (i in wet_pred_complete$cons_days[-1]) {
+        extra.row <- rep(wet_pred_complete[wet_pred_complete$cons_days == i, "cons_days"], wet_pred_complete[wet_pred_complete$cons_days == i, "pred_down"])
+        
+        wet_days <- append(wet_days, extra.row)
+    }
+    
+    # drop 3 extra days 
+    dry_days <- dry_days[-c(1:3)]
+    
+    # resampling
+    dry_resamp <- sample(dry_days)
+    wet_resamp <- sample(wet_days)
+    
+    # mix wet and dry days together
+    len <- length(dry_resamp) + length(wet_resamp)
+    drywet <- matrix(ncol=2, nrow = len)
+    colnames(drywet) <- c("num_days", "category")
+    drywet <- as.data.frame(drywet)
+    for (i in 1:length(dry_resamp)) {
+        drywet[i+(i-1),"num_days"] <- dry_resamp[i]
+        drywet[i+(i-1),"category"] <- "dry"
+    }
+    
+    for (i in 1:length(wet_resamp)) {
+        drywet[i+i,"num_days"] <- wet_resamp[i]
+        drywet[i+i,"category"] <- "wet"
+    }
+    
+    # create a time series
+    d <- c(1:sum(drywet$num_days))
+    outDF <- data.frame(d, NA, NA)
+    colnames(outDF) <- c("day","category", "prec") 
+    outDF$category <- rep(drywet$category, drywet$num_days)
+    outDF[outDF$category == "dry", "prec"] <- 0.0
+    outDF[outDF$category == "wet", "prec"] <- rain.events
+  
+    write.csv(outDF, outName, row.names=F)
 }
 
 
 # sample randomly from prec events and checking conditions
-random.sample <- function(sm.value, md.value, lg.value) {
+random.sample <- function(sm.value, md.value, lg.value, tot_wet) {
+    
+    # set 3:2:1 constants
+    share <- round(tot_wet/6, 0)
+    a <- share * 3
+    b <- share * 2
+    c1 <- share * 6 - tot_wet
+    
+    c <- ifelse(c1 <= 0, share, tot_wet - a - b)
+
     repeat {
-        sm.series <- sample(sm.value, 20)
-        md.series <- sample(md.value, 12)
-        lg.series <- sample(lg.value, 6)
+        sm.series <- sample(sm.value, a)
+        md.series <- sample(md.value, b)
+        lg.series <- sample(lg.value, c)
         out <- c(sm.series, md.series, lg.series)
         tot_rain <- sum(out)
         
         
         # exit if the condition is met
-        # 20% variation
-        if (tot_rain >= 230 & tot_rain <= 360) break
+        # 20 % variation
+        if (tot_rain >= 270 & tot_rain <= 330) break
     }
     return(out)
 }
